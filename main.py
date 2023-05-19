@@ -45,11 +45,11 @@ def create_config():
     password = "".join(random.choice(string.ascii_letters + string.digits) for _ in range(25))
 
     unused_file.close()
-    used_file.close()
+    # used_file.close()
 
     unused_file = open(f"{PATH_TO_PORTS}unused_port.txt", "w")
     unused_file.writelines(all_file)
-    unused_file.close()
+    # unused_file.close()
 
     if not (port in used_file.read().split("\n") and port in exclude_file.read().split("\n")):
         new_config = open(f"{PATH_TO_CONFIGS}{port}.txt", "w+")
@@ -57,15 +57,19 @@ def create_config():
         new_config.write(config_text)
         new_config.close()
 
-        start_command = f"/usr/bin/ss-server -f /tmp/4003.pid -c {PATH_TO_CONFIGS}{port}.txt -t 60 -d {DNS_SERVER} -s {HOST_NAME}"
+        start_command = f"/usr/bin/ss-server -f /tmp/4003.pid -c {PATH_TO_CONFIGS}{port}.conf -t 60 -d {DNS_SERVER} -s {HOST_NAME}"
         result = subprocess.check_output(start_command, shell=True)
 
         command = f"echo chacha20-ietf-poly1305:{password}@{HOST_NAME}:{port} | base64 --wrap=0 | sed 's/^/ss:\x2F\x2F/' | sed 's/.$//' > {port}.txt"
         result = subprocess.check_output(command, stdin=subprocess.PIPE, shell=True)
 
-        result_file = open(f"{port}.txt", "a+")
+        result_file = open(f"{port}.conf", "a+")
         data = result_file.read()
         result_file.close()
+        unused_file.writelines(all_file)
+        used_file.close()
+        unused_file.close()
+
         return {
             "key": data
         }
