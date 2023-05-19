@@ -31,50 +31,52 @@ def ping():
 
 
 @app.get("/get_kay/")
-def create_config():
-    key = ""
+try:
+    def create_config():
+        key = ""
 
-    unused_file = open(f"{PATH_TO_PORTS}unused_port.txt", "r+")
-    used_file = open(f"{PATH_TO_PORTS}used_port.txt", "a+")
-    exclude_file = open(f"{PATH_TO_PORTS}exclude.txt", "a+")
+        unused_file = open(f"{PATH_TO_PORTS}unused_port.txt", "r+")
+        used_file = open(f"{PATH_TO_PORTS}used_port.txt", "a+")
+        exclude_file = open(f"{PATH_TO_PORTS}exclude.txt", "a+")
 
-    port = unused_file.readline()[:-1]
-    all_file = unused_file.read()
+        port = unused_file.readline()[:-1]
+        all_file = unused_file.read()
 
-    used_file.writelines(port + "\n")
-    password = "".join(random.choice(string.ascii_letters + string.digits) for _ in range(25))
+        used_file.writelines(port + "\n")
+        password = "".join(random.choice(string.ascii_letters + string.digits) for _ in range(25))
 
-    unused_file.close()
-    # used_file.close()
-
-    unused_file = open(f"{PATH_TO_PORTS}unused_port.txt", "w")
-    unused_file.writelines(all_file)
-    # unused_file.close()
-
-    if not (port in used_file.read().split("\n") and port in exclude_file.read().split("\n")):
-        new_config = open(f"{PATH_TO_CONFIGS}{port}.txt", "w+")
-        config_text = f'{{\n"server_port": {port},\n"password": "{password}",\n"method": "chacha20-ietf-poly1305",\n"mode": "tcp_and_udp"\n}}'
-        new_config.close()
-
-        start_command = f"/usr/bin/ss-server -f /tmp/4003.pid -c {PATH_TO_CONFIGS}{port}.conf -t 60 -d {DNS_SERVER} -s {HOST_NAME}"
-        result = subprocess.check_output(start_command, shell=True)
-
-        command = f"echo chacha20-ietf-poly1305:{password}@{HOST_NAME}:{port} | base64 --wrap=0 | sed 's/^/ss:\x2F\x2F/' | sed 's/.$//' > {port}.txt"
-        result = subprocess.check_output(command, stdin=subprocess.PIPE, shell=True)
-
-        result_file = open(f"{port}.txt", "a+")
-        data = result_file.read()
-        result_file.close()
-        used_file.close()
         unused_file.close()
+        # used_file.close()
+
+        unused_file = open(f"{PATH_TO_PORTS}unused_port.txt", "w")
+        unused_file.writelines(all_file)
+        # unused_file.close()
+
+        if not (port in used_file.read().split("\n") and port in exclude_file.read().split("\n")):
+            new_config = open(f"{PATH_TO_CONFIGS}{port}.conf", "w+")
+            config_text = f'{{\n"server_port": {port},\n"password": "{password}",\n"method": "chacha20-ietf-poly1305",\n"mode": "tcp_and_udp"\n}}'
+            new_config.close()
+
+            start_command = f"/usr/bin/ss-server -f /tmp/4003.pid -c {PATH_TO_CONFIGS}{port}.conf -t 60 -d {DNS_SERVER} -s {HOST_NAME}"
+            result = subprocess.check_output(start_command, shell=True)
+
+            command = f"echo chacha20-ietf-poly1305:{password}@{HOST_NAME}:{port} | base64 --wrap=0 | sed 's/^/ss:\x2F\x2F/' | sed 's/.$//' > {port}.txt"
+            result = subprocess.check_output(command, stdin=subprocess.PIPE, shell=True)
+
+            result_file = open(f"{port}.txt", "a+")
+            data = result_file.read()
+            result_file.close()
+            used_file.close()
+            unused_file.close()
+            return {
+                "key": data
+            }
+
         return {
-            "key": data
+            "key": "Error"
         }
-
-    return {
-        "key": "Error"
-    }
-
+except  BaseException as e:
+        print(f"ERROR main -> create_config ERR001 {e}")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8001)
