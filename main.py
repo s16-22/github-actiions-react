@@ -54,7 +54,6 @@ def create_config():
     if not (port in used_file.read().split("\n") and port in exclude_file.read().split("\n")):
         new_config = open(f"{PATH_TO_CONFIGS}{port}.txt", "w+")
         config_text = f'{{\n"server_port": {port},\n"password": "{password}",\n"method": "chacha20-ietf-poly1305",\n"mode": "tcp_and_udp"\n}}'
-        new_config.write(config_text)
         new_config.close()
 
         start_command = f"/usr/bin/ss-server -f /tmp/4003.pid -c {PATH_TO_CONFIGS}{port}.conf -t 60 -d {DNS_SERVER} -s {HOST_NAME}"
@@ -63,13 +62,11 @@ def create_config():
         command = f"echo chacha20-ietf-poly1305:{password}@{HOST_NAME}:{port} | base64 --wrap=0 | sed 's/^/ss:\x2F\x2F/' | sed 's/.$//' > {port}.txt"
         result = subprocess.check_output(command, stdin=subprocess.PIPE, shell=True)
 
-        result_file = open(f"{port}.conf", "a+")
+        result_file = open(f"{port}.txt", "a+")
         data = result_file.read()
         result_file.close()
-        unused_file.writelines(all_file)
         used_file.close()
         unused_file.close()
-
         return {
             "key": data
         }
