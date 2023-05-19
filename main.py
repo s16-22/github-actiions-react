@@ -30,8 +30,8 @@ def ping():
     }
 
 
-@app.get("/get_kay/")
 try:
+    @app.get("/get_kay/")
     def create_config():
         key = ""
 
@@ -75,8 +75,8 @@ try:
         return {
             "key": "Error"
         }
-except  BaseException as e:
-        print(f"ERROR main -> create_config ERR001 {e}")
+except BaseException as e:
+    print(f"ERROR main -> create_config ERR001 {e}")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8001)
